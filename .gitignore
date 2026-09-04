@@ -1,0 +1,41 @@
+# model weights: best.pt is distributed as a GitHub Release asset; yolov8n-pose.pt auto-downloads
+models/*.pt
+*.pt
+
+# video and audio are never committed
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.m4a
+*.mepj
+
+# credentials
+.env
+.streamlit/secrets.toml
+*token*.txt
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# local datasets, training artefacts and exports are never committed (Le2i frames and labels, event exports)
+data/
+dataset/
+datasets/
+*.csv
+*.parquet
+*.zip
+*.duckdb
+
+# outputs and OS junk
+outputs/
+runs/
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
