@@ -1,0 +1,180 @@
+{
+  "name": "FallGuard pending actions",
+  "nodes": [
+    {
+      "id": "f13a68c9-637a-41d9-9610-7edaaef58642",
+      "name": "Pending webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "48f5d271-2a90-4cf5-b401-18e2373f2562",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "fallguard-pending",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4EuS3tmbFBnPmM8x",
+          "name": "FallGuard key"
+        }
+      }
+    },
+    {
+      "id": "63fe6040-3805-4205-97af-503986a2acf6",
+      "name": "Open actions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "open"
+            }
+          ]
+        },
+        "combineFilters": "AND",
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "824c5a58-4338-4828-91de-f1df6e53a532",
+      "name": "Profile webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        200
+      ],
+      "webhookId": "fc2dbd7f-5fc4-43b6-a104-925b25502384",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "fallguard-profile",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4EuS3tmbFBnPmM8x",
+          "name": "FallGuard key"
+        }
+      }
+    },
+    {
+      "id": "632c57c2-6113-4c4e-b267-094285d45ccf",
+      "name": "Residents",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        260,
+        200
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "residents"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "50b91f0d-1bc3-4d13-a7d6-2b0a060896d5",
+      "name": "Pick resident",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        200
+      ],
+      "parameters": {
+        "jsCode": "// Match the camera / file name to a residents row; fall back to the row named\n// 'default', then to the first row, so a demo video never gets lost because\n// its file name is missing from the sheet. profile_match says which one hit.\nconst src = String($('Profile webhook').first().json.query.source || '').trim().toLowerCase();\nconst rows = $input.all().map(i => i.json);\nconst norm = v => String(v || '').trim().toLowerCase();\nconst row = rows.find(r => norm(r.source_name) === src)\n         || rows.find(r => norm(r.source_name) === 'default')\n         || rows[0];\nif (!row) return [{ json: { error: 'residents sheet is empty' } }];\nreturn [{ json: { ...row, profile_match: norm(row.source_name) === src ? 'exact' : 'fallback' } }];\n"
+      }
+    }
+  ],
+  "connections": {
+    "Pending webhook": {
+      "main": [
+        [
+          {
+            "node": "Open actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile webhook": {
+      "main": [
+        [
+          {
+            "node": "Residents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Residents": {
+      "main": [
+        [
+          {
+            "node": "Pick resident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

@@ -1,0 +1,3451 @@
+{
+  "name": "FallGuard Flow 3",
+  "nodes": [
+    {
+      "id": "52a04fd2-af5c-4bc6-ab13-98342ca12a2d",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        340
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fallguard",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4EuS3tmbFBnPmM8x",
+          "name": "FallGuard key"
+        }
+      },
+      "webhookId": "104ab36c-5f72-4df7-ae91-a6f07a8acea2"
+    },
+    {
+      "id": "392d4f50-1bc8-460e-8dec-792d09fa4dad",
+      "name": "Event log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "event_log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "received_at": "={{ $now.toISO() }}",
+            "event_type": "={{ $json.body.event_type }}",
+            "episode_id": "={{ $json.body.episode.episode_id }}",
+            "source_name": "={{ $json.body.source.name }}",
+            "status": "={{ $json.body.episode.status }}",
+            "time_on_ground_sec": "={{ $json.body.episode.time_on_ground_sec }}",
+            "head_risk": "={{ $json.body.episode.event_features.head_impact?.risk ?? '' }}",
+            "fall_confidence": "={{ $json.body.episode.event_features.fall_confidence ?? '' }}",
+            "tier": "",
+            "episode_json": "={{ JSON.stringify($json.body.episode) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "received_at",
+              "displayName": "received_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_name",
+              "displayName": "source_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time_on_ground_sec",
+              "displayName": "time_on_ground_sec",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "head_risk",
+              "displayName": "head_risk",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fall_confidence",
+              "displayName": "fall_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tier",
+              "displayName": "tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_json",
+              "displayName": "episode_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "0fdee0ef-c5a2-47d4-b0fa-111ffd151992",
+      "name": "Switch event_type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        260,
+        340
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d695f6c0-8657-4407-b11d-45d32467c7d4",
+                    "leftValue": "={{ $json.body.event_type }}",
+                    "rightValue": "fall_detected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "fall_detected"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "89537fea-0183-4e53-99a8-ae7e33d1c8b7",
+                    "leftValue": "={{ $json.body.event_type }}",
+                    "rightValue": "fall_analysed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "fall_analysed"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8202ce70-3c63-4ee7-81f8-975cfb4627f5",
+                    "leftValue": "={{ $json.body.event_type }}",
+                    "rightValue": "escalation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "escalation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "66ebbeb2-9a88-4685-9897-17072ae58ff8",
+                    "leftValue": "={{ $json.body.event_type }}",
+                    "rightValue": "episode_closed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "episode_closed"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8af0c968-7df1-4ac3-8590-22643b11e396",
+                    "leftValue": "={{ $json.body.event_type }}",
+                    "rightValue": "test",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "test"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a8f93503-d234-45bc-9276-af1745a0f977",
+      "name": "IF false alarm",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        170
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2a246a16-d9a8-48b6-ae92-d551d7f1172e",
+              "leftValue": "={{ $json.body.episode.event_features.fall_confidence }}",
+              "rightValue": "likely_false_alarm",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ed23979f-d81d-40a1-bdf0-d873ba72f098",
+      "name": "Profile lookup",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        780,
+        170
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "residents"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "871633ab-7326-41fe-abff-2cbe59b18de3",
+      "name": "Pick profile",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        910.0,
+        170
+      ],
+      "parameters": {
+        "jsCode": "// Match the camera / file name to a residents row; fall back to the row named\n// 'default', then to the first row, so a demo video never gets lost because\n// its file name is missing from the sheet. profile_match says which one hit.\nconst src = String($('Webhook').first().json.body.source.name || '').trim().toLowerCase();\nconst rows = $input.all().map(i => i.json);\nconst norm = v => String(v || '').trim().toLowerCase();\nconst row = rows.find(r => norm(r.source_name) === src)\n         || rows.find(r => norm(r.source_name) === 'default')\n         || rows[0];\nif (!row) return [];\nreturn [{ json: { ...row, profile_match: norm(row.source_name) === src ? 'exact' : 'fallback' } }];\n"
+      }
+    },
+    {
+      "id": "bf436999-a5f5-4c40-a990-f6f81da5c044",
+      "name": "Build alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        170
+      ],
+      "parameters": {
+        "jsCode": "// Code node \"Build alert\"  (Mode: Run Once for Each Item)\n// Input item = one row of the residents sheet (from \"Profile lookup\").\n// The webhook payload is reached through $('Webhook').\n// Output: { chat_id, text } for the Telegram node. (Each-item mode: return ONE object, not an array.)\nconst row  = $input.item.json;                       // residents sheet row\nconst body = $('Webhook').first().json.body;\nconst ep   = body.episode;\nconst ef   = ep.event_features || {};\nconst pre  = ef.prefall || {};\nconst head = ef.head_impact || {};\n\nconst fellFrom = (pre.fall_height_category || 'unknown').replace(/_/g, ' ');\nconst conf = ef.fall_confidence || 'unconfirmed';\nconst confWords = {\n  confirmed: 'confirmed — person seen on the floor',\n  unconfirmed: 'not confirmed — check in person',\n  likely_false_alarm: 'likely false alarm',\n}[conf] || conf;\n\nconst text =\n  `🔴 FALL DETECTED — ${row.resident_name || body.source.name}\\n` +\n  `Time: ${ep.fall_time}\\n` +\n  `Camera: ${body.source.name}\\n` +\n  `Fell from: ${fellFrom}\\n` +\n  `Head-impact risk: ${head.risk || 'unknown'}\\n` +\n  `Status: ${confWords}\\n` +\n  `On the floor so far: ${Math.round(ep.time_on_ground_sec)} s\\n` +\n  `A full report follows when the episode ends.`;\n\n// Telegram parse mode is HTML: escape the three characters that break it.\nconst esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n// ---- v10: media for Telegram -------------------------------------------\n// The app adds body.clip.mp4_base64 (short H.264 clip around the fall) and\n// body.snapshots.fall_frame_jpeg_base64 when those options are ticked.\n// The chain after this node sends video > photo > plain text, whichever exists.\nconst clipB64  = (body.clip && body.clip.mp4_base64) || null;\nconst photoB64 = (body.snapshots && body.snapshots.fall_frame_jpeg_base64) || null;\nconst clipNote = body.clip\n  ? `\\nClip: ${body.clip.pre_fall_sec != null ? body.clip.pre_fall_sec + ' s before' : ''}` +\n    `${body.clip.post_fall_sec != null ? ' to ' + body.clip.post_fall_sec + ' s after the fall' : ''}`\n  : '';\n\nreturn ({ json: {\n  chat_id: row.carer_telegram_chat_id,\n  text: esc(text + clipNote).slice(0, 1000),          // caption limit is 1024 chars\n  clip_b64: clipB64,\n  photo_b64: photoB64,\n} });\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "a5c3c124-3ec7-4dd2-a54d-f581eca5656c",
+      "name": "Profile lookup 2",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        780,
+        340
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "residents"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "6fab35f7-b836-493b-9143-e254f024175e",
+      "name": "Pick profile 2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        910.0,
+        340
+      ],
+      "parameters": {
+        "jsCode": "// Match the camera / file name to a residents row; fall back to the row named\n// 'default', then to the first row, so a demo video never gets lost because\n// its file name is missing from the sheet. profile_match says which one hit.\nconst src = String($('Webhook').first().json.body.source.name || '').trim().toLowerCase();\nconst rows = $input.all().map(i => i.json);\nconst norm = v => String(v || '').trim().toLowerCase();\nconst row = rows.find(r => norm(r.source_name) === src)\n         || rows.find(r => norm(r.source_name) === 'default')\n         || rows[0];\nif (!row) return [];\nreturn [{ json: { ...row, profile_match: norm(row.source_name) === src ? 'exact' : 'fallback' } }];\n"
+      }
+    },
+    {
+      "id": "7ed12cfc-cca3-45e6-af14-d063de6791aa",
+      "name": "Build escalation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        340
+      ],
+      "parameters": {
+        "jsCode": "// Code node \"Build escalation\"  (Mode: Run Once for Each Item)\n// Input item = residents sheet row (from \"Profile lookup 2\"); payload via $('Webhook').\nconst row  = $input.item.json;\nconst body = $('Webhook').first().json.body;\nconst ep   = body.episode;\nconst pb   = ep.posture_breakdown_sec || {};\nconst level = body.alert_level;                         // 2 or 3 (top-level field on escalation events)\nconst head  = (ep.event_features && ep.event_features.head_impact) ? ep.event_features.head_impact.risk : 'unknown';\n\nconst lead = level === 3\n  ? `🚨 EMERGENCY — no recovery after ${ep.thresholds.level3_sec} s`\n  : `⚠️ STILL DOWN — ${ep.thresholds.level2_sec} s on the floor`;\n\nconst text =\n  `${lead}\\n` +\n  `${row.resident_name || body.source.name} · ${body.source.name}\\n` +\n  `On the floor: ${Math.round(ep.time_on_ground_sec)} s (lying ${Math.round(pb.lying || 0)} s, motionless ${Math.round(ep.time_motionless_sec || 0)} s, out of view ${Math.round(pb.not_visible || 0)} s)\\n` +\n  `Head-impact risk: ${head}\\n` +\n  (level === 3\n    ? `Check on them now. If not responsive or unable to get up: call 000.`\n    : `Please check on them now.`);\n\n// Telegram parse mode is HTML: escape the three characters that break it.\nconst esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n// ---- v10: media for Telegram -------------------------------------------\n// The app adds body.clip.mp4_base64 (short H.264 clip around the fall) and\n// body.snapshots.fall_frame_jpeg_base64 when those options are ticked.\n// The chain after this node sends video > photo > plain text, whichever exists.\nconst clipB64  = (body.clip && body.clip.mp4_base64) || null;\nconst photoB64 = (body.snapshots && body.snapshots.fall_frame_jpeg_base64) || null;\nconst clipNote = body.clip\n  ? `\\nClip: ${body.clip.pre_fall_sec != null ? body.clip.pre_fall_sec + ' s before' : ''}` +\n    `${body.clip.post_fall_sec != null ? ' to ' + body.clip.post_fall_sec + ' s after the fall' : ''}`\n  : '';\n\nreturn ({ json: {\n  chat_id: row.carer_telegram_chat_id,\n  text: esc(text + clipNote).slice(0, 1000),\n  clip_b64: clipB64,\n  photo_b64: photoB64,\n} });\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "1c34b126-3b25-489b-8dd9-96991a5a02d1",
+      "name": "IF has clip",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        170
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2d96fac-622c-4711-87a8-ff3351827eea",
+              "leftValue": "={{ $json.clip_b64 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "718e3ed4-f017-42e6-be25-062618aad903",
+      "name": "Clip to file",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1560,
+        0
+      ],
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "clip_b64",
+        "binaryPropertyName": "data",
+        "options": {
+          "fileName": "fall_clip.mp4",
+          "mimeType": "video/mp4"
+        }
+      }
+    },
+    {
+      "id": "4611cd26-2a56-4bfd-a61a-d25a16e526f2",
+      "name": "Telegram video",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1820,
+        0
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendVideo",
+        "chatId": "={{ $('IF has clip').first().json.chat_id }}",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "caption": "={{ $('IF has clip').first().json.text }}",
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "89wGlQIFPckQF840",
+          "name": "Telegram account"
+        }
+      },
+      "webhookId": "f2007cb5-df0e-4552-a3ef-e9366fc64040"
+    },
+    {
+      "id": "d2d82042-0fb1-4188-ba6d-9651333fb83e",
+      "name": "IF has snapshot",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1560,
+        340
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "adcc26d7-41a2-4815-a868-4bc8cc958886",
+              "leftValue": "={{ $json.photo_b64 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ec2fb46b-1f6d-428e-a66d-74ed5c7bed91",
+      "name": "Snapshot to file",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1820,
+        170
+      ],
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "photo_b64",
+        "binaryPropertyName": "data",
+        "options": {
+          "fileName": "fall_frame.jpg",
+          "mimeType": "image/jpeg"
+        }
+      }
+    },
+    {
+      "id": "c9ca657b-7206-487f-8789-fdecc3b29fe9",
+      "name": "Telegram photo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2080,
+        170
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendPhoto",
+        "chatId": "={{ $('IF has snapshot').first().json.chat_id }}",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "caption": "={{ $('IF has snapshot').first().json.text }}",
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "89wGlQIFPckQF840",
+          "name": "Telegram account"
+        }
+      },
+      "webhookId": "fe177ea3-03db-4e25-9c46-e2ce4b2662b7"
+    },
+    {
+      "id": "8a5e4fa3-6cb3-4afe-9e72-1d942b453246",
+      "name": "Telegram text",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1820,
+        340
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "89wGlQIFPckQF840",
+          "name": "Telegram account"
+        }
+      },
+      "webhookId": "c70dfc04-0fe8-466b-89e9-3708b1ea8ff3"
+    },
+    {
+      "id": "e9479b14-75c6-4fe7-aef6-1c3e63e4df14",
+      "name": "Profile lookup 3",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        520,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "residents"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "162202aa-90ee-4817-93f3-a5f2952ad9c5",
+      "name": "Pick profile 3",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        650.0,
+        680
+      ],
+      "parameters": {
+        "jsCode": "// Match the camera / file name to a residents row; fall back to the row named\n// 'default', then to the first row, so a demo video never gets lost because\n// its file name is missing from the sheet. profile_match says which one hit.\nconst src = String($('Webhook').first().json.body.source.name || '').trim().toLowerCase();\nconst rows = $input.all().map(i => i.json);\nconst norm = v => String(v || '').trim().toLowerCase();\nconst row = rows.find(r => norm(r.source_name) === src)\n         || rows.find(r => norm(r.source_name) === 'default')\n         || rows[0];\nif (!row) return [];\nreturn [{ json: { ...row, profile_match: norm(row.source_name) === src ? 'exact' : 'fallback' } }];\n"
+      }
+    },
+    {
+      "id": "20cbc1a8-6f39-41d8-b389-901f423a4e23",
+      "name": "Assemble",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        680
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d8ba65f-d25d-41a9-b8fb-ae0123108432",
+              "name": "body",
+              "value": "={{ $('Webhook').first().json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "3982ea56-496a-4a84-a848-ff881ad357b3",
+              "name": "profile",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "74cae98f-3434-444b-89fb-1bca44859dd9",
+      "name": "Grading",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        680
+      ],
+      "parameters": {
+        "jsCode": "// n8n Code node — Mode: \"Run Once for Each Item\", Language: JavaScript\n// Input : one item from the Webhook node (POST body is under $input.item.json.body)\n// Output: the same item with a `grading` object added, used by the LLM prompt\n//         and by the Switch node that picks the delivery channel.\n//\n// PLACEHOLDER RULES. Every threshold lives in the block below so the team's\n// own grading criteria can replace them in one place. Numbers are DEMO scale:\n// Level 2 = 10 s and Level 3 = 30 s come from the FallGuard sidebar (echoed in\n// episode.thresholds). For reference, the literature's \"long lie\" is one hour\n// or more on the floor, and Apple Watch auto-calls emergency services after\n// about one minute of immobility plus a 30-second countdown.\n\nconst MOTIONLESS_ALERT_SEC = 60;   // deployment value; use ~15 for demo videos\nconst LONG_LIE_SEC = 3600;         // one hour = clinical \"long lie\"\n\nconst body = $input.item.json.body;\nconst ep = body.episode;\nconst T = ep.thresholds || {};\nconst pb = ep.posture_breakdown_sec || {};\nconst ef = ep.event_features || {};\nconst head = ef.head_impact || {};\nconst pre = ef.prefall || {};\n\nconst onGround   = Number(ep.time_on_ground_sec || 0);\nconst lying      = Number(pb.lying || 0);\nconst partial    = Number(pb.partially_upright || 0);\nconst notVisible = Number(pb.not_visible || 0);\nconst still      = Number(ep.time_motionless_sec || 0);\nconst stillUnknown = Number(ep.time_motion_unknown_sec || 0);\nconst visibleTime = lying + partial;\n\n// ---- 0. Was it a fall at all? --------------------------------------------\n// fall_confidence comes from the app: \"confirmed\" (body settled lying or\n// head reached floor level), \"unconfirmed\" (neither seen, still down or a\n// posture the rules cannot read), \"likely_false_alarm\" (neither seen and\n// upright again within a few seconds: a crouch, bend or sit tripped the\n// detector). A likely false alarm is logged, nobody is messaged.\nconst confidence = ef.fall_confidence || 'unconfirmed';\nif (confidence === 'likely_false_alarm') {\n  $input.item.json.grading = {\n    tier: 0, tier_label: 'NONE', report_type: 'false_alarm_log', channels: ['log'],\n    flags: ['likely_false_alarm'], fall_confidence: confidence,\n    summary_numbers: {}, head_risk: head.risk || 'unknown', head_reasons: '',\n    fall_height_words: '', fall_height_cm: '',\n  };\n  return $input.item;\n}\n\n// ---- 1. Base tier from what the state machine already decided ------------\n// 3 HIGH     : Level 3 fired (no recovery within level3_sec) OR the stream\n//              ended while the person was still down (status = unresolved)\n// 2 MODERATE : Level 2 fired (down longer than level2_sec) but recovered\n// 1 LOW      : recovered before Level 2\nlet tier;\nif (ep.status === 'unresolved' || ep.max_alert_level >= 3) tier = 3;\nelse if (ep.max_alert_level >= 2) tier = 2;\nelse tier = 1;\n\n// ---- 2. Modifiers (each one is explained to the caregiver in the report) --\nconst flags = [];\n\n// Motionless for most of the visible time (and the movement measure was\n// available for most of it) -> raise one tier.\nif (visibleTime > 0 &&\n    still >= 0.5 * visibleTime &&\n    stillUnknown <= 0.3 * visibleTime &&\n    onGround >= (T.level2_sec || 10)) {\n  flags.push('mostly_motionless');\n  if (tier < 3) tier += 1;\n}\n\n// Motionless beyond the absolute threshold -> HIGH regardless of anything else.\nif (still >= MOTIONLESS_ALERT_SEC) { flags.push('motionless_over_threshold'); tier = 3; }\n\n// Head-impact risk from the fall analysis. \"high\" means the head came down\n// fast and reached floor level (an estimate from 2-D keypoints, not a\n// detected contact). Even with a quick recovery this warrants a medical\n// check, so it lifts the tier to at least MODERATE.\nif (head.risk === 'high')   { flags.push('head_impact_risk_high');   if (tier < 2) tier = 2; }\nif (head.risk === 'medium') { flags.push('head_impact_risk_medium'); }\nif (head.risk === 'unknown' || ef.analysis_status !== 'done') flags.push('head_impact_unknown');\n\n// Fall from an elevated position (feet estimated > 1 m above the floor):\n// NICE head-injury guidance treats a fall from more than 1 m or 5 stairs as\n// a dangerous mechanism.\nif (pre.fall_height_category === 'elevated_over_1m') { flags.push('elevated_fall'); if (tier < 2) tier = 2; }\n\n// Person out of view for a large share of the episode: the durations are a\n// lower bound and someone should physically check.\nif (onGround > 0 && notVisible >= 0.3 * onGround) flags.push('person_lost_from_view');\n\nif (ep.status === 'unresolved') flags.push('no_recovery_observed');\n\n// Fall called by pose rules / temporal change only, without the trained\n// detector: lower confidence in the fall itself (rule precision is low).\nconst sig = ep.trigger_signals || {};\nif (sig.detector === false && (sig.pose_rule || sig.temporal)) flags.push('rule_only_trigger');\n\nif (lying >= LONG_LIE_SEC) flags.push('long_lie');\n\nif (confidence === 'unconfirmed') flags.push('fall_unconfirmed');\n\n// ---- 3. Report type per tier -----------------------------------------------\n// Every form contains the four required items (time of event, time on the\n// ground, head-impact risk, fall height); they differ in length and urgency.\n// 1 -> activity_note          : short, goes into the daily log/digest\n// 2 -> caregiver_notification : email, suggested check-in / medical check\n// 3 -> incident_report        : structured report by email + immediate\n//                               emergency message (Telegram)\nconst tierLabel = { 1: 'LOW', 2: 'MODERATE', 3: 'HIGH' }[tier];\nconst reportType = { 1: 'activity_note', 2: 'caregiver_notification', 3: 'incident_report' }[tier];\nconst channels = { 1: ['email_digest'], 2: ['email'], 3: ['telegram', 'email'] }[tier];\n\n// Human-readable values for the prompt (avoid making the LLM do arithmetic)\nfunction fmt(s) {\n  s = Math.round(s);\n  return s >= 60 ? `${Math.floor(s / 60)} min ${s % 60} s` : `${s} s`;\n}\nconst heightWords = {\n  standing_height: 'from standing height',\n  seated_height: 'from a seated position (chair or bed edge)',\n  bed_or_sofa_height: 'from a lying position (bed or sofa)',\n  elevated_over_1m: 'from an elevated position, estimated more than 1 m above the floor',\n  unknown: 'from an unknown height (the person was not clearly visible before the fall)',\n}[pre.fall_height_category || 'unknown'];\n\n$input.item.json.grading = {\n  tier, tier_label: tierLabel, report_type: reportType, channels, flags,\n  fall_confidence: confidence,\n  summary_numbers: {\n    time_on_ground: fmt(onGround),\n    time_lying: fmt(lying),\n    time_partially_upright: fmt(partial),\n    time_not_visible: fmt(notVisible),\n    time_motionless: fmt(still),\n    motion_measure_unavailable: fmt(stillUnknown),\n  },\n  fall_height_words: heightWords,\n  fall_height_cm: pre.hip_height_cm != null\n    ? `hip about ${Math.round(pre.hip_height_cm)} cm and head about ${Math.round(pre.head_height_cm)} cm above the floor before the fall (rough single-camera estimate)`\n    : 'no centimetre estimate (patient height not set)',\n  head_risk: head.risk || 'unknown',\n  head_reasons: (head.reasons || []).join('; ') || 'no analysis available',\n};\nreturn $input.item;\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "5c35b88a-4db4-4512-b78a-b3add5e2a2c7",
+      "name": "Report LLM",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        680
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "claude-opus-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Write the report described by REPORT TYPE using the DATA.\n\nREPORT TYPE: {{ $json.grading.report_type }}   (severity tier {{ $json.grading.tier }} = {{ $json.grading.tier_label }})\n\nFormats (all four items always appear):\n- activity_note: 3-4 sentences for a daily log. No subject line.\n- caregiver_notification: first line \"Subject: ...\", blank line, then at most\n  150 words covering the four items, then one short paragraph \"What to do now\".\n- incident_report: first line \"Subject: ...\", blank line, then these sections\n  in this order, each 1-3 sentences unless stated: \"What happened\" (time,\n  place/camera, outcome), \"Timeline\" (bullet list with clock times of the fall,\n  each alert, and the end of the episode), \"Time on the floor\" (total, lying,\n  motionless, out of view), \"Head-impact risk\" (rating + the reasons in plain\n  words), \"Fall height\" (category + rough centimetres if given), \"Points of\n  concern\" (one bullet per flag), \"What to do now\" (numbered steps).\n\nDATA\n- Person: {{ $json.profile.resident_name || 'not on file' }} (date of birth {{ $json.profile.dob || 'not on file' }}); usual GP {{ $json.profile.gp_name || 'not on file' }}\n- Takes blood-thinning (anticoagulant / antiplatelet) medication: {{ $json.profile.anticoagulant || 'unknown' }}\n- Advance care directive on file: {{ $json.profile.acd_on_file || 'unknown' }}\n- Camera / source: {{ $json.body.source.name }} ({{ $json.body.source.mode }})\n- Fall detected at: {{ $json.body.episode.fall_time }}\n- Outcome: {{ $json.body.episode.status }} (recovered = got up and stayed upright; unresolved = recording ended while still down)\n- Episode ended at: {{ $json.body.episode.end_time }}\n- Total time on the floor: {{ $json.grading.summary_numbers.time_on_ground }}\n- Of which lying flat: {{ $json.grading.summary_numbers.time_lying }}\n- Of which sitting / kneeling / getting up: {{ $json.grading.summary_numbers.time_partially_upright }}\n- Of which out of the camera's view: {{ $json.grading.summary_numbers.time_not_visible }}\n- Time with almost no body movement: {{ $json.grading.summary_numbers.time_motionless }} (movement could not be measured for {{ $json.grading.summary_numbers.motion_measure_unavailable }})\n- Head-impact risk rating: {{ $json.grading.head_risk }} — basis: {{ $json.grading.head_reasons }}\n- Fall height: {{ $json.grading.fall_height_words }}; {{ $json.grading.fall_height_cm }}\n- Highest alert level reached: {{ $json.body.episode.max_alert_level }} (1 = fall detected, 2 = still down after {{ $json.body.episode.thresholds.level2_sec }} s, 3 = no recovery after {{ $json.body.episode.thresholds.level3_sec }} s)\n- Alerts sent (level, clock time, seconds on floor at that moment): {{ JSON.stringify($json.body.episode.alerts.map(a => [a.level, a.time, a.time_on_ground_sec])) }}\n- How the fall was recognised: trained fall detector = {{ $json.body.episode.trigger_signals.detector }}, body-posture rules = {{ $json.body.episode.trigger_signals.pose_rule }}, sudden change of body angle = {{ $json.body.episode.trigger_signals.temporal }}\n- Did the camera confirm a fall to the floor: {{ $json.grading.fall_confidence }} (confirmed = the body was seen lying or the head reached floor level; unconfirmed = neither was seen, the person may have gone down in a way the camera could not read)\n- Flags from the grading step: {{ $json.grading.flags.join(', ') || 'none' }}\n  (fall_unconfirmed = say plainly that the camera detected a fall-like event but could not confirm the person reached the floor;\n   mostly_motionless = little movement for most of the time on the floor;\n   motionless_over_threshold = no movement for longer than the alert threshold;\n   head_impact_risk_high / _medium = see head-impact rating; head_impact_unknown = head not visible enough to judge;\n   elevated_fall = fell from an estimated height of more than 1 m;\n   person_lost_from_view = out of view for a large share of the episode, durations are a minimum;\n   no_recovery_observed = recording ended while still down;\n   rule_only_trigger = fall called by posture rules only, lower confidence that it was a fall;\n   long_lie = on the floor for an hour or more)",
+              "role": "user"
+            }
+          ]
+        },
+        "simplify": true,
+        "options": {
+          "system": "=You write short incident reports for the FAMILY CAREGIVER of an older adult\nwho is monitored at home by FallGuard, a camera-based fall-detection system.\n\nHard rules:\n- Use ONLY the measurements given in the user message. Do not invent injuries,\n  causes, symptoms, or anything the camera cannot see. If something is unknown,\n  say it is unknown.\n- FallGuard is a detection aid, not a medical device. Never diagnose. Never\n  tell the caregiver an injury did or did not happen.\n- Every report contains these four items, in this order:\n  1. when the fall happened,\n  2. how long the person was on the floor (and whether they got up),\n  3. head-impact risk,\n  4. how high they fell from.\n- Head-impact risk is an ESTIMATE from how fast the head came down and whether\n  it reached floor level. Write \"the camera analysis rates the risk that the\n  head struck the floor as high/medium/low\"; never write that the head hit or\n  did not hit the floor. \"Unknown\" means the head was not visible enough to\n  judge — say so.\n- Fall height is a CATEGORY (standing height / seated position / lying\n  position / elevated more than 1 m / unknown). When centimetre figures are\n  given, present them as rough estimates from a single camera.\n- Explain every number in plain words a non-technical person understands.\n  Never use internal field names.\n- The person may have been out of the camera's view for part of the episode.\n  When \"time not visible\" is more than a few seconds, say the durations are a\n  minimum, not an exact figure.\n- Motionless means the camera saw very little body movement; it does NOT mean\n  unconscious. Say exactly that.\n- When the outcome is \"unresolved\", the recording ended while the person was\n  still on the floor and nobody has confirmed they got up. Make this the first\n  sentence and tell the caregiver to check on them now.\n- Recommendations must match the severity tier given. For the HIGH tier the\n  first action is to check on the person immediately and call emergency\n  services (000 in Australia) if they are not responsive or cannot get up. When\n  head-impact risk is high or medium, recommend a medical assessment the same\n  day even if the person seems fine, and say to seek urgent care if they become\n  drowsy, confused, vomit, or take blood-thinning medication.\n- Use the person's name when it is given; never write identifiers (Medicare\n  number, IHI, insurance numbers) even if they appear anywhere.\n- When blood-thinning medication is \"yes\" and head-impact risk is medium or\n  high, say clearly that a same-day medical assessment is recommended.\n- No greetings, no sign-off, no emojis, no markdown headings other than the\n  ones the format asks for. Be brief.\nREPORT_LANGUAGE: English",
+          "includeMergedResponse": true
+        }
+      }
+    },
+    {
+      "id": "2aaf6f35-949e-495e-be05-80d94480215a",
+      "name": "Report",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1300,
+        850
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "79f20d80-00eb-4cc6-835d-0d7e41de77e6",
+              "name": "text",
+              "value": "={{ $json.merged_response || $json.content.last().text || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "78b14bd2-0531-42ac-8a29-9a69878c635d",
+      "name": "Report email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1560,
+        680
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.carer_email }}",
+        "subject": "=FallGuard · Step 1 of 4 · Fall report for {{ $('Assemble').first().json.profile.resident_name }} — action needed",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Step 1 of 4</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">Fall detected — {{ $('Assemble').first().json.profile.resident_name }}</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #c92a2a;background:#fff5f5;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#c92a2a\">ACTION NEEDED</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">Check on {{ $('Assemble').first().json.profile.resident_name }} now. Then open the <b>FallGuard app → Actions</b> and complete the <b>Post-fall check</b> (six questions). Your decision — <b>Call 000</b>, <b>Contact GP or virtual care</b> or <b>Observe at home</b> — sets the next steps. Nothing goes to the hospital or the family until you decide.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ ($json.text.startsWith('Subject:') ? $json.text.split('\\n').slice(2).join('\\n') : $json.text).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "5fb67dea-09f8-40f0-94bb-d945d1ea2873"
+    },
+    {
+      "id": "6f47f612-0641-47ed-b695-f960b8f279dd",
+      "name": "Queue post-fall check",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1820,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created_at": "={{ $now.toISO() }}",
+            "episode_id": "={{ $('Assemble').first().json.body.episode.episode_id }}",
+            "resident": "={{ $('Assemble').first().json.profile.resident_name }}",
+            "step": "post_fall_check",
+            "detail": "=Fall at {{ $('Assemble').first().json.body.episode.fall_time }} ({{ $('Assemble').first().json.body.source.name }}). Time on the floor {{ $('Grading').first().json.grading.summary_numbers.time_on_ground }}, head-impact risk {{ $('Grading').first().json.grading.head_risk }}, severity {{ $('Grading').first().json.grading.tier_label }}. Outcome so far: {{ $('Assemble').first().json.body.episode.status }}. Full report was emailed to the carer.",
+            "resume_url": "={{ $execution.resumeUrl }}#post_fall_check",
+            "status": "open"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_url",
+              "displayName": "resume_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "2a287692-45e2-47ca-9fdb-051ebddb6cf0",
+      "name": "Wait post-fall check",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        680
+      ],
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "options": {},
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "resumeAmount": 2,
+        "resumeUnit": "hours"
+      },
+      "webhookId": "9d9e7350-fdaa-460f-912f-3b54433d6648"
+    },
+    {
+      "id": "fade2f42-7ac1-4af1-86ff-a8a3b697f17a",
+      "name": "Done post-fall check",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2340,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "resume_url": "={{ $execution.resumeUrl }}#post_fall_check",
+            "status": "done"
+          },
+          "matchingColumns": [
+            "resume_url"
+          ],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_url",
+              "displayName": "resume_url",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "d876a5f9-c2a5-44ed-b919-2e1aa34e0a36",
+      "name": "Caregiver form",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        680
+      ],
+      "parameters": {
+        "jsCode": "// Answer POSTed by the FallGuard app (Actions page) to the Wait node's resume URL.\nconst b = $('Wait post-fall check').first().json.body || {};\nreturn { json: b };\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "f2d8aa5b-413e-4e91-9b57-2ab8354ec5a0",
+      "name": "Switch decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        2860,
+        680
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c5b154a3-b4bc-4fe0-8fe2-3ea8553d4da0",
+                    "leftValue": "={{ $json.Decision }}",
+                    "rightValue": "Call 000",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Call 000"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f7e06a27-f87f-45e4-ad96-41fef95fe620",
+                    "leftValue": "={{ $json.Decision }}",
+                    "rightValue": "Contact GP or virtual care",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Contact GP or virtual care"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "34fcc404-bbc9-4207-b469-2dfef7eceea5",
+                    "leftValue": "={{ $json.Decision }}",
+                    "rightValue": "Observe at home",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Observe at home"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "78e918b2-4890-43e7-91d3-21f48025119b",
+      "name": "Build transfer pack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        510
+      ],
+      "parameters": {
+        "jsCode": "// Code node \"Build transfer pack\"  (Mode: Run Once for Each Item)\n// Runs on the \"Call 000\" branch after the caregiver form.\n// Reads: $('Assemble') (body + profile), $('Grading'), $('Caregiver form').\n// Output: { subject, text } for the Gmail node.\nconst a    = $('Assemble').first().json;\nconst body = a.body, p = a.profile || {};\nconst ep   = body.episode, pb = ep.posture_breakdown_sec || {};\nconst g    = $('Grading').first().json.grading || {};\nconst f    = $('Caregiver form').first().json || {};\nconst ef   = ep.event_features || {}, pre = ef.prefall || {}, head = ef.head_impact || {};\n\nconst isbar = [\n  'ISBAR HANDOVER — FALL (from FallGuard camera record)',\n  '',\n  `I  Identify: ${p.resident_name || '(name)'}, DOB ${p.dob || '(dob)'}, ${p.address || body.source.name}. Caller: carer.`,\n  `S  Situation: Fall detected ${ep.fall_time}. Outcome so far: ${ep.status}. On the floor ${g.summary_numbers?.time_on_ground || Math.round(ep.time_on_ground_sec) + ' s'}` +\n    ` (lying ${g.summary_numbers?.time_lying || Math.round(pb.lying || 0) + ' s'}, motionless ${g.summary_numbers?.time_motionless || Math.round(ep.time_motionless_sec || 0) + ' s'}).`,\n  `B  Background: Fell ${g.fall_height_words || 'from ' + (pre.fall_height_category || 'unknown').replace(/_/g, ' ')}.` +\n    ` Anticoagulant / antiplatelet: ${p.anticoagulant || 'unknown'}. ACD on file: ${p.acd_on_file || 'unknown'} (carer reviewed: ${f['ACD reviewed'] || 'n/a'}). GP: ${p.gp_name || ''} ${p.gp_phone || ''}.`,\n  `A  Assessment (carer, at scene): injury ${f['Injury seen'] || 'n/a'}; alert ${f['Alert and responsive'] || 'n/a'}; pain ${f['Pain'] || 'n/a'}; can stand ${f['Can stand and walk'] || 'n/a'}.` +\n    ` Camera analysis rates the risk that the head struck the floor as ${head.risk || 'unknown'} (${(head.reasons || []).join('; ') || 'no basis recorded'}). This is an estimate, not a diagnosis.`,\n  `R  Recommendation: carer decided \"${f['Decision'] || 'Call 000'}\". Please assess for head injury and long-lie complications as clinically indicated.`,\n  '',\n  'TRANSFER PACK — take with the person:',\n  '  [ ] Medicare card  [ ] concession card (Pensioner / Health Care / Seniors Health / DVA)  [ ] private-insurance card if any',\n  '  [ ] current medication list or the medications themselves  [ ] allergy list',\n  '  [ ] advance care directive copy  [ ] enduring guardian / guardianship papers',\n  `  [ ] GP details: ${p.gp_name || ''} ${p.gp_phone || ''}  [ ] emergency contact: ${p.supporter_name || ''} ${p.supporter_email || ''}`,\n  '  [ ] glasses, hearing aids, dentures, walking aid  [ ] phone and charger',\n  '  [ ] this page',\n  '',\n  'Do NOT write the Medicare number, IHI or insurance membership number in messages; the cards go with the person.',\n].join('\\n');\n\nreturn { json: { subject: `FALL — ${p.resident_name || body.source.name}: transfer pack and ISBAR`, text: isbar } };\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "8632aba4-c381-4ed3-85fb-44c0c650a87c",
+      "name": "Transfer pack email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3380,
+        510
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.carer_email }}",
+        "subject": "=FallGuard · Transfer pack and ISBAR handover for {{ $('Assemble').first().json.profile.resident_name }}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Call 000</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">Transfer pack — {{ $('Assemble').first().json.profile.resident_name }}</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #1864ab;background:#eef4ff;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#1864ab\">FOR YOUR INFORMATION</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">You chose <b>Call 000</b>. Below are the transfer checklist and the ISBAR handover for the paramedics and the emergency department. Keep it on your phone or print it. No app action for this email.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ ($json.text).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "8849a173-1280-4597-be77-86d141b58792"
+    },
+    {
+      "id": "fa7b9b25-e89c-473e-acde-5cf45ebc3785",
+      "name": "Supporter approval email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3640,
+        510
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.carer_email }}",
+        "subject": "=FallGuard · Step 2 of 4 · Approve the family notice for {{ $('Assemble').first().json.profile.supporter_name }} — action needed",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Step 2 of 4</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">Approve the notice to {{ $('Assemble').first().json.profile.supporter_name }}</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #c92a2a;background:#fff5f5;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#c92a2a\">ACTION NEEDED</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">Before the fall notice is sent to <b>{{ $('Assemble').first().json.profile.supporter_name }}</b> ({{ $('Assemble').first().json.profile.supporter_email }}), a person must approve it. Open the <b>FallGuard app → Actions → Approve family notice</b> and press Approve or Decline. The draft that would be sent is below.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ (($('Report').first().json.text.startsWith('Subject:') ? $('Report').first().json.text.split('\\n').slice(2).join('\\n') : $('Report').first().json.text)).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "b2e06340-e84a-405c-9bb9-b368b320b745"
+    },
+    {
+      "id": "38c0e294-17d6-43a6-a3b4-f4c2c2bc40e1",
+      "name": "Queue supporter approval",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3900,
+        510
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created_at": "={{ $now.toISO() }}",
+            "episode_id": "={{ $('Assemble').first().json.body.episode.episode_id }}",
+            "resident": "={{ $('Assemble').first().json.profile.resident_name }}",
+            "step": "supporter_notice_approval",
+            "detail": "=Draft notice for {{ $('Assemble').first().json.profile.supporter_name }} ({{ $('Assemble').first().json.profile.supporter_email }}):\n\n{{ ($('Report').first().json.text.startsWith('Subject:') ? $('Report').first().json.text.split('\\n').slice(2).join('\\n') : $('Report').first().json.text) }}",
+            "resume_url": "={{ $execution.resumeUrl }}#supporter_notice_approval",
+            "status": "open"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_url",
+              "displayName": "resume_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "99007e09-8623-4b64-af6b-691169d9f57f",
+      "name": "Wait supporter approval",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4160,
+        510
+      ],
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "options": {},
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "resumeAmount": 2,
+        "resumeUnit": "hours"
+      },
+      "webhookId": "aba7ddd6-c128-444e-911c-772e988d3d85"
+    },
+    {
+      "id": "2b6bdc22-aade-4643-a07f-57aad0742e63",
+      "name": "Done supporter approval",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        4420,
+        510
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "resume_url": "={{ $execution.resumeUrl }}#supporter_notice_approval",
+            "status": "done"
+          },
+          "matchingColumns": [
+            "resume_url"
+          ],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_url",
+              "displayName": "resume_url",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "2326076c-87ce-4957-808b-a2019fe1dd81",
+      "name": "Supporter approval",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4680,
+        510
+      ],
+      "parameters": {
+        "jsCode": "// Answer POSTed by the FallGuard app (Actions page) to the Wait node's resume URL.\nconst b = $('Wait supporter approval').first().json.body || {};\nreturn { json: { data: { approved: b.approved === true || String(b.approved).toLowerCase() === 'true', decided_by: b.decided_by || '', decided_at: b.decided_at || '' } } };\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "fd4a1823-771e-4d59-a1a7-c60ff1135c8f",
+      "name": "IF approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4940,
+        510
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a3a280c9-efcd-4330-914c-2ee6a0c4fac7",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9a79fccd-20c6-4981-859d-1ccab48dae7a",
+      "name": "Supporter notice",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        5200,
+        510
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.supporter_email }}",
+        "subject": "=FallGuard · Fall notice for {{ $('Assemble').first().json.profile.resident_name }}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Family notice</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">Fall notice — {{ $('Assemble').first().json.profile.resident_name }}</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #1864ab;background:#eef4ff;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#1864ab\">FOR YOUR INFORMATION</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">Dear {{ $('Assemble').first().json.profile.supporter_name }}, this notice comes from the carer of <b>{{ $('Assemble').first().json.profile.resident_name }}</b> about a fall recorded by the FallGuard camera system. The carer has reviewed and approved it. Decision taken: <b>{{ $('Caregiver form').first().json.Decision }}</b>. Please contact the carer for more information.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ (($('Report').first().json.text.startsWith('Subject:') ? $('Report').first().json.text.split('\\n').slice(2).join('\\n') : $('Report').first().json.text)).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "3a2a2edd-dcb3-4302-875d-91f132f4cc3f"
+    },
+    {
+      "id": "61b92162-88e4-4372-91d3-2ae0db3af0f0",
+      "name": "GP summary",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3120,
+        680
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.gp_email }}",
+        "subject": "=FallGuard · Fall — {{ $('Assemble').first().json.profile.resident_name }} — camera record for GP review",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">GP summary</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">Fall — {{ $('Assemble').first().json.profile.resident_name }}</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #1864ab;background:#eef4ff;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#1864ab\">FOR YOUR INFORMATION</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">Dr {{ $('Assemble').first().json.profile.gp_name }}, the carer of <b>{{ $('Assemble').first().json.profile.resident_name }}</b> has chosen to contact you after a fall recorded by the FallGuard camera system. The report below records what the camera measured; it is not a diagnosis.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ ($('Report').first().json.text).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "e43225a9-eb3b-4503-ba5c-a1848efed379"
+    },
+    {
+      "id": "ca574354-15b4-4ea7-b100-041ec6ab66bf",
+      "name": "Wait next business day",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3380,
+        680
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "webhookId": "a4aff43d-4d77-4847-9532-725ec690ede6"
+    },
+    {
+      "id": "5812aa2f-e235-455a-ace6-926e5680dd49",
+      "name": "GP reminder",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3640,
+        680
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Assemble').first().json.profile.carer_telegram_chat_id }}",
+        "text": "=Reminder: confirm the GP has the fall summary for {{ $('Assemble').first().json.profile.resident_name }}.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "89wGlQIFPckQF840",
+          "name": "Telegram account"
+        }
+      },
+      "webhookId": "c0f23fcd-4f5c-46fa-af79-7125de5889ad"
+    },
+    {
+      "id": "1dafb1d1-425a-4e7c-8814-0c77614b9648",
+      "name": "Obs reminder 1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3120,
+        850
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Assemble').first().json.profile.carer_telegram_chat_id }}",
+        "text": "=Post-fall check for {{ $('Assemble').first().json.profile.resident_name }} now: alert? headache? vomiting? new pain? If anything changes, record it in the app (Actions -> Record outcome) or call 000.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "89wGlQIFPckQF840",
+          "name": "Telegram account"
+        }
+      },
+      "webhookId": "077668c1-2f16-4def-a442-cbd8b8a30b85"
+    },
+    {
+      "id": "e431c6a9-ee75-44a1-8c13-8476f30fc42e",
+      "name": "Wait 1 hour",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3380,
+        850
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "webhookId": "d1b3d1b9-0a1c-40c7-b55b-f258c85a1056"
+    },
+    {
+      "id": "8ae1558a-43a4-4f0d-a490-83195600671a",
+      "name": "Obs reminder 2",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3640,
+        850
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Assemble').first().json.profile.carer_telegram_chat_id }}",
+        "text": "=Post-fall check for {{ $('Assemble').first().json.profile.resident_name }} now: alert? headache? vomiting? new pain? If anything changes, record it in the app (Actions -> Record outcome) or call 000.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "89wGlQIFPckQF840",
+          "name": "Telegram account"
+        }
+      },
+      "webhookId": "8f68b583-0c99-4357-a006-23835d2445eb"
+    },
+    {
+      "id": "14b04cf2-2ea9-4a42-8ab5-b399f192dbb5",
+      "name": "Outcome message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        5460,
+        680
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.carer_email }}",
+        "subject": "=FallGuard · Step 3 of 4 · Record the outcome for {{ $('Assemble').first().json.profile.resident_name }} — action needed",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Step 3 of 4</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">How did it end for {{ $('Assemble').first().json.profile.resident_name }}?</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #c92a2a;background:#fff5f5;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#c92a2a\">ACTION NEEDED</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">The immediate steps are complete. Once things have settled, open the <b>FallGuard app → Actions → Record outcome</b> and choose <b>Stayed home</b>, <b>ED then home</b> or <b>Admitted</b> (hospital and notes optional). This closes the episode: it fills in the incident draft, selects the after-fall information sheet and, if admitted, notifies {{ $('Assemble').first().json.profile.supporter_name }}.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ ('Your decision at the post-fall check: ' + $('Caregiver form').first().json.Decision + '.\\nFall time: ' + $('Assemble').first().json.body.episode.fall_time).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "86df19c2-61b2-4c31-8110-f6430365292b"
+    },
+    {
+      "id": "dd59ccb3-0b9e-492d-958b-99901220a47d",
+      "name": "Queue outcome",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5720,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created_at": "={{ $now.toISO() }}",
+            "episode_id": "={{ $('Assemble').first().json.body.episode.episode_id }}",
+            "resident": "={{ $('Assemble').first().json.profile.resident_name }}",
+            "step": "outcome",
+            "detail": "=Decision was '{{ $('Caregiver form').first().json.Decision }}'. Record how it ended: stayed home, ED then home, or admitted (hospital name and notes optional).",
+            "resume_url": "={{ $execution.resumeUrl }}#outcome",
+            "status": "open"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_url",
+              "displayName": "resume_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "de520b6b-e83d-42a1-b8a4-af25a9b373cf",
+      "name": "Wait outcome",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5980,
+        680
+      ],
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "options": {},
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "resumeAmount": 2,
+        "resumeUnit": "hours"
+      },
+      "webhookId": "2a575f29-2a9b-46e5-978b-c50497d6810e"
+    },
+    {
+      "id": "137eef2b-d808-4192-b289-0ecb65b79610",
+      "name": "Done outcome",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        6240,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "resume_url": "={{ $execution.resumeUrl }}#outcome",
+            "status": "done"
+          },
+          "matchingColumns": [
+            "resume_url"
+          ],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_url",
+              "displayName": "resume_url",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "3f289c1c-eef1-46e0-b13b-edc2950f7f6f",
+      "name": "Outcome form",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6500,
+        680
+      ],
+      "parameters": {
+        "jsCode": "// Answer POSTed by the FallGuard app (Actions page) to the Wait node's resume URL.\nconst b = $('Wait outcome').first().json.body || {};\nreturn { json: b };\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "bfa65b38-3c46-446c-a77e-bfef20228137",
+      "name": "IF admitted",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6760,
+        680
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "401b6bac-fd5a-4e00-9e01-c9b58b1e8a61",
+              "leftValue": "={{ $json.Outcome }}",
+              "rightValue": "Admitted",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6a3e493f-5469-47fb-87b1-d45362a31178",
+      "name": "Admission notice",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        7020,
+        510
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.supporter_email }}",
+        "subject": "=FallGuard · Hospital admission — {{ $('Assemble').first().json.profile.resident_name }}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Family notice</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">Hospital admission — {{ $('Assemble').first().json.profile.resident_name }}</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #1864ab;background:#eef4ff;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#1864ab\">FOR YOUR INFORMATION</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">Dear {{ $('Assemble').first().json.profile.supporter_name }}, <b>{{ $('Assemble').first().json.profile.resident_name }}</b> was admitted to hospital after a fall. This is a notification only; please contact the carer for further information.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ ('Hospital: ' + ($('Outcome form').first().json.Hospital || 'not recorded') + '\\nFall time: ' + $('Assemble').first().json.body.episode.fall_time + '\\nNotes from the carer: ' + ($('Outcome form').first().json.Notes || '-')).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "62584089-a817-4b7b-b920-129bdb0d88b4"
+    },
+    {
+      "id": "2b945328-2158-4407-b104-581492e7b70e",
+      "name": "Incident draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7280,
+        680
+      ],
+      "parameters": {
+        "jsCode": "// Code node \"Incident draft\"  (Mode: Run Once for Each Item)\n// Runs after the outcome form. Pre-fills what the camera record knows and leaves the\n// clinical fields for a person. Output: { subject, text, row } — text for Gmail, row for Sheets.\nconst a    = $('Assemble').first().json;\nconst body = a.body, p = a.profile || {};\nconst ep   = body.episode, pb = ep.posture_breakdown_sec || {};\nconst g    = $('Grading').first().json.grading || {};\nconst f1   = $('Caregiver form').first().json || {};\nconst f2   = $('Outcome form').first().json || {};\nconst ef   = ep.event_features || {}, pre = ef.prefall || {}, head = ef.head_impact || {};\n\nconst alerts = (ep.alerts || []).map(x => `  - Level ${x.level} ${x.label} at ${x.time} (${x.time_on_ground_sec} s on floor)`).join('\\n');\nconst text = [\n  `INCIDENT REPORT — DRAFT (pre-filled by FallGuard; fields marked [ ] need a person)`,\n  ``,\n  `Person: ${p.resident_name || ''}   DOB: ${p.dob || ''}   Location: ${p.address || body.source.name}`,\n  `Event: fall detected ${ep.fall_time} (video time ${ep.fall_video_time_sec} s), episode ${ep.episode_id}`,\n  `Witnessed: camera record exists (source ${body.source.name}); human witness: [ ]`,\n  ``,\n  `What the camera recorded`,\n  `  Fell ${g.fall_height_words || 'from ' + (pre.fall_height_category || 'unknown')}; pre-fall posture ${pre.posture || 'unknown'}.`,\n  `  Time on the floor ${Math.round(ep.time_on_ground_sec)} s: lying ${Math.round(pb.lying || 0)} s, partially upright ${Math.round(pb.partially_upright || 0)} s, out of view ${Math.round(pb.not_visible || 0)} s; motionless ${Math.round(ep.time_motionless_sec || 0)} s.`,\n  `  Outcome of episode: ${ep.status} (${ep.status === 'recovered' ? 'got up and stayed upright' : 'recording ended while still down'}).`,\n  `  Head-impact risk rating: ${head.risk || 'unknown'} — ${(head.reasons || []).join('; ')}`,\n  `  Fall confirmed by camera: ${ef.fall_confidence || 'unconfirmed'}`,\n  `  Alerts sent:\\n${alerts || '  - none'}`,\n  ``,\n  `Carer assessment at scene: injury ${f1['Injury seen'] || '[ ]'}; alert ${f1['Alert and responsive'] || '[ ]'}; pain ${f1['Pain'] || '[ ]'}; can stand ${f1['Can stand and walk'] || '[ ]'}; ACD reviewed ${f1['ACD reviewed'] || '[ ]'}; decision ${f1['Decision'] || '[ ]'}; notes ${f1['Notes'] || ''}`,\n  `Outcome: ${f2['Outcome'] || '[ ]'}; hospital ${f2['Hospital'] || ''}; notes ${f2['Notes'] || ''}`,\n  ``,\n  `Fields a person must complete`,\n  `  [ ] Injuries found by a clinician (site, severity)`,\n  `  [ ] Immediate actions taken (how lifted, first aid)`,\n  `  [ ] Likely cause and environment (floor, footwear, lighting, medication changes, night toileting)`,\n  `  [ ] Who was notified and when (family, GP, ambulance) — camera log: see event_log sheet`,\n  `  [ ] Meets the QI Program \"major injury\" definition? (fracture, dislocation, closed head injury with altered consciousness, subdural haematoma)`,\n  `  [ ] SIRS reportable category, priority and reasoning — provider decision; NOT automated`,\n  `  [ ] Care-plan changes`,\n].join('\\n');\n\nconst row = {\n  episode_id: ep.episode_id, resident: p.resident_name || '', fall_time: ep.fall_time,\n  time_on_ground_sec: ep.time_on_ground_sec, head_risk: head.risk || 'unknown',\n  fall_height: pre.fall_height_category || 'unknown', fall_confidence: ef.fall_confidence || '',\n  decision: f1['Decision'] || '', outcome: f2['Outcome'] || '', tier: g.tier_label || '',\n  draft_created_at: new Date().toISOString(),\n};\nreturn { json: { subject: `Incident report draft — ${p.resident_name || body.source.name} — ${ep.fall_time}`, text, row } };\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "6633d530-04de-4bc7-9846-af83c081e0ce",
+      "name": "Save incident",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        7540,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "incidents"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "episode_id": "={{ $json.row.episode_id }}",
+            "resident": "={{ $json.row.resident }}",
+            "fall_time": "={{ $json.row.fall_time }}",
+            "time_on_ground_sec": "={{ $json.row.time_on_ground_sec }}",
+            "head_risk": "={{ $json.row.head_risk }}",
+            "fall_height": "={{ $json.row.fall_height }}",
+            "fall_confidence": "={{ $json.row.fall_confidence }}",
+            "decision": "={{ $json.row.decision }}",
+            "outcome": "={{ $json.row.outcome }}",
+            "tier": "={{ $json.row.tier }}",
+            "draft_created_at": "={{ $json.row.draft_created_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fall_time",
+              "displayName": "fall_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time_on_ground_sec",
+              "displayName": "time_on_ground_sec",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "head_risk",
+              "displayName": "head_risk",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fall_height",
+              "displayName": "fall_height",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fall_confidence",
+              "displayName": "fall_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "decision",
+              "displayName": "decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outcome",
+              "displayName": "outcome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tier",
+              "displayName": "tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "draft_created_at",
+              "displayName": "draft_created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "78445794-2011-413f-b044-622903635a05",
+      "name": "Incident draft email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        7800,
+        680
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.carer_email }}",
+        "subject": "=FallGuard · Incident report DRAFT — {{ $('Assemble').first().json.profile.resident_name }} (not submitted)",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Incident draft</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">Incident report draft — {{ $('Assemble').first().json.profile.resident_name }}</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #1864ab;background:#eef4ff;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#1864ab\">FOR YOUR INFORMATION</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">Pre-filled from the camera record and your answers. Fields marked <b>[ ]</b> need a person (injuries found by a clinician, cause, actions taken, SIRS category). Copy it into your incident management system — FallGuard never submits it. No app action for this email.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ ($('Incident draft').first().json.text).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "a4d33a1f-8284-4b3c-810a-a473d26005ba"
+    },
+    {
+      "id": "08112fd4-a5c5-43f9-8c32-21d08bf6ef96",
+      "name": "Education blocks",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        8060,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "education_blocks"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "140b5adf-1f1b-4fa3-97c1-32ce46e61baf",
+      "name": "Select blocks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8320,
+        680
+      ],
+      "parameters": {
+        "jsCode": "// Code node \"Select blocks\"  (Mode: Run Once for All Items)\n// Input items = ALL rows of the education_blocks sheet (columns: key, lang, title, text, source).\n// Picks the blocks that match the episode's state and returns ONE item with the ordered blocks.\nconst rows = $input.all().map(i => i.json);\nconst a    = $('Assemble').first().json;\nconst p    = a.profile || {};\nconst ep   = a.body.episode;\nconst ef   = ep.event_features || {}, head = ef.head_impact || {};\nconst f2   = $('Outcome form').first().json || {};\nconst lang = (p.language || 'en').toLowerCase();\n\nconst keys = ['after_a_fall_basics'];\nif (['high', 'medium'].includes(head.risk)) keys.push('head_injury_watch');\nif (String(p.anticoagulant).toLowerCase().startsWith('y')) keys.push('anticoagulant_warning');\nif (ep.time_on_ground_sec >= (ep.thresholds?.level2_sec || 10) || ep.status !== 'recovered') keys.push('cannot_get_up');\nif (['Admitted', 'ED then home'].includes(f2['Outcome'] || '')) keys.push('after_hospital');   // discharge / after-hospital care for both ways home\nkeys.push('prevent_next_fall', 'when_to_call');\n\nconst pick = k => rows.find(r => r.key === k && (r.lang || 'en').toLowerCase() === lang)\n                || rows.find(r => r.key === k && (r.lang || 'en').toLowerCase() === 'en');\nconst blocks = keys.map(pick).filter(Boolean);\n\nreturn [{ json: {\n  resident_name: p.resident_name || '', language: lang, keys,\n  blocks_text: blocks.map(b => `## ${b.title}\\n${b.text}\\n(Source: ${b.source})`).join('\\n\\n'),\n} }];\n"
+      }
+    },
+    {
+      "id": "927d2789-26fa-4250-9fde-92b35ab08878",
+      "name": "Compose LLM",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        8580,
+        680
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "claude-opus-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Language: {{ $json.language }}\nName: {{ $json.resident_name }}\n\nBLOCKS:\n{{ $json.blocks_text }}",
+              "role": "user"
+            }
+          ]
+        },
+        "simplify": true,
+        "options": {
+          "system": "=You assemble a short after-fall information sheet for a family carer from\nAPPROVED text blocks. Rules:\n- Reproduce every block's content faithfully. You may shorten repeated\n  sentences and write one connecting sentence between blocks. Do not add any\n  medical advice, symptom, medicine, dose or number that is not in the blocks.\n- Keep each block's heading and its \"(Source: …)\" line.\n- Start with one line: \"Information for the carer of <name> — please read\n  with the discharge papers, not instead of them.\"\n- End with the line: \"Reviewed before sending by: ______ (nurse or GP)\".\n- Plain language, no emojis, no markdown other than the block headings.\n- Write in the language given; if it is not English, translate the blocks\n  faithfully and keep the source lines in English.",
+          "includeMergedResponse": true
+        }
+      }
+    },
+    {
+      "id": "c21acd8f-c279-443b-b8c2-d7984d7b3386",
+      "name": "Compose sheet",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        8580,
+        850
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "719d0b37-2124-4591-96c7-ea206ce891ea",
+              "name": "text",
+              "value": "={{ $json.merged_response || $json.content.last().text || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e89c3257-588c-4e8a-82ca-5cf1850a35ce",
+      "name": "RN / GP approval email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        8840,
+        680
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.carer_email }}",
+        "subject": "=FallGuard · Step 4 of 4 · Nurse/GP approval of the information sheet for {{ $('Assemble').first().json.profile.resident_name }} — action needed",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Step 4 of 4</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">Approve the after-fall information sheet</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #c92a2a;background:#fff5f5;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#c92a2a\">ACTION NEEDED</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">The sheet below was assembled only from approved text blocks chosen for this fall (head-impact risk, blood-thinning medication, time on the floor, admission, language). It goes to <b>{{ $('Assemble').first().json.profile.supporter_name }}</b> only after a nurse or GP approves it: open the <b>FallGuard app → Actions → Approve information sheet</b>.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ ($json.text).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "5aea178e-7b58-4487-bceb-8d64a8b56c94"
+    },
+    {
+      "id": "cc5c20c7-6134-4dea-a3dd-6de4aca7ad0e",
+      "name": "Queue sheet approval",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        9100,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created_at": "={{ $now.toISO() }}",
+            "episode_id": "={{ $('Assemble').first().json.body.episode.episode_id }}",
+            "resident": "={{ $('Assemble').first().json.profile.resident_name }}",
+            "step": "education_sheet_approval",
+            "detail": "=Information sheet for {{ $('Assemble').first().json.profile.supporter_name }} (assembled from approved blocks):\n\n{{ $('Compose sheet').first().json.text }}",
+            "resume_url": "={{ $execution.resumeUrl }}#education_sheet_approval",
+            "status": "open"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_url",
+              "displayName": "resume_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "baa40ed9-4f83-4a3a-a6ea-27d6b632a57c",
+      "name": "Wait sheet approval",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        9360,
+        680
+      ],
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "options": {},
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "resumeAmount": 2,
+        "resumeUnit": "hours"
+      },
+      "webhookId": "d2d3dd6c-2748-4589-9cec-d9c96cbd2831"
+    },
+    {
+      "id": "7d8efbe8-bb02-45bb-823c-d987d0d29aec",
+      "name": "Done sheet approval",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        9620,
+        680
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1jwn3vxmVjdjMdBPQc2A77imNXHxz-uU8WzdFke6YiWU",
+          "cachedResultName": "Fall Response Report"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pending_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "resume_url": "={{ $execution.resumeUrl }}#education_sheet_approval",
+            "status": "done"
+          },
+          "matchingColumns": [
+            "resume_url"
+          ],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "episode_id",
+              "displayName": "episode_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resident",
+              "displayName": "resident",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_url",
+              "displayName": "resume_url",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "x2dEvSLUIVHXIczV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "afe19115-8f71-4eea-959f-84f9bd6cd5f0",
+      "name": "RN / GP approval",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9880,
+        680
+      ],
+      "parameters": {
+        "jsCode": "// Answer POSTed by the FallGuard app (Actions page) to the Wait node's resume URL.\nconst b = $('Wait sheet approval').first().json.body || {};\nreturn { json: { data: { approved: b.approved === true || String(b.approved).toLowerCase() === 'true', decided_by: b.decided_by || '', decided_at: b.decided_at || '' } } };\n",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "7e35cb5a-0b44-4373-a907-b946c6f88f81",
+      "name": "IF RN approved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        10140,
+        680
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2958fb63-1519-472f-a347-d30924e6c362",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "000a729b-eb5a-4e35-8663-22180d7df4e2",
+      "name": "Send education sheet",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        10400,
+        510
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Assemble').first().json.profile.supporter_email }}",
+        "subject": "=FallGuard · After a fall — information for the carer of {{ $('Assemble').first().json.profile.resident_name }}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html><body style=\"margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f2f4f7\"><tr><td align=\"center\" style=\"padding:24px 12px\"><table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px;width:100%;background:#ffffff;border:1px solid #e3e6ea;border-radius:8px\"><tr><td style=\"background:#0f3d3e;color:#ffffff;padding:16px 24px;border-radius:8px 8px 0 0\"><span style=\"font-size:20px;font-weight:700;letter-spacing:.02em\">FallGuard</span><span style=\"float:right;font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:12px\">Information sheet</span></td></tr><tr><td style=\"padding:22px 24px 8px 24px\"><h1 style=\"margin:0;font-size:21px;line-height:1.3;color:#111827\">After a fall — {{ $('Assemble').first().json.profile.resident_name }}</h1></td></tr><tr><td style=\"padding:0 24px\"><div style=\"padding:14px 16px;border-left:5px solid #1864ab;background:#eef4ff;border-radius:4px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.1em;color:#1864ab\">FOR YOUR INFORMATION</div><div style=\"margin-top:6px;font-size:15px;line-height:1.5;color:#1f2937\">Dear {{ $('Assemble').first().json.profile.supporter_name }}, the information below was reviewed and approved by a nurse or GP. Please read it together with any discharge papers, not instead of them.</div></div></td></tr><tr><td style=\"padding:18px 24px 24px 24px\"><div style=\"white-space:pre-wrap;font-size:14px;line-height:1.6;color:#374151\">{{ ($('Compose sheet').first().json.text).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>') }}</div></td></tr><tr><td style=\"padding:12px 24px;background:#f7f8fa;border-radius:0 0 8px 8px;font-size:11px;line-height:1.5;color:#6b7280\">Sent automatically by FallGuard. The report records what the camera measured; it is not a diagnosis and never replaces a clinical assessment. Do not reply to this email.</td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goKcKrkl9KKHEZsq",
+          "name": "Gmail account"
+        }
+      },
+      "webhookId": "88173547-4e0f-463d-b4cf-82e2291d3e82"
+    },
+    {
+      "id": "f2fe6bcb-7070-480d-a9b1-8486c0218a1e",
+      "name": "Wait 1 day",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        10660,
+        680
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "webhookId": "1248dd0b-8be4-4d38-95ee-bcca84206d18"
+    },
+    {
+      "id": "26afd743-a46d-40ea-8ddd-b28df17a8ac4",
+      "name": "Follow-up",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        10920,
+        680
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Assemble').first().json.profile.carer_telegram_chat_id }}",
+        "text": "={{ $('Caregiver form').first().json.Decision === 'Call 000' ? 'Follow-up: if an ambulance attended, apply for the ambulance fee exemption with the ' + ($('Assemble').first().json.profile.concession_card_type || 'concession card') + ' for ' + $('Assemble').first().json.profile.resident_name + '.' : 'Follow-up: please confirm the review appointment for ' + $('Assemble').first().json.profile.resident_name + ' after the fall, and check for new pain, confusion or unsteadiness.' }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "89wGlQIFPckQF840",
+          "name": "Telegram account"
+        }
+      },
+      "webhookId": "ac2cb995-a0ad-444e-a270-8b3e7001103f"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Event log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Switch event_type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch event_type": {
+      "main": [
+        [],
+        [
+          {
+            "node": "IF false alarm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Profile lookup 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Profile lookup 3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Profile lookup 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile lookup": {
+      "main": [
+        [
+          {
+            "node": "Pick profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF false alarm": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Profile lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick profile": {
+      "main": [
+        [
+          {
+            "node": "Build alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile lookup 2": {
+      "main": [
+        [
+          {
+            "node": "Pick profile 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick profile 2": {
+      "main": [
+        [
+          {
+            "node": "Build escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build alert": {
+      "main": [
+        [
+          {
+            "node": "IF has clip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build escalation": {
+      "main": [
+        [
+          {
+            "node": "IF has clip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF has clip": {
+      "main": [
+        [
+          {
+            "node": "Clip to file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF has snapshot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clip to file": {
+      "main": [
+        [
+          {
+            "node": "Telegram video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF has snapshot": {
+      "main": [
+        [
+          {
+            "node": "Snapshot to file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Snapshot to file": {
+      "main": [
+        [
+          {
+            "node": "Telegram photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile lookup 3": {
+      "main": [
+        [
+          {
+            "node": "Pick profile 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick profile 3": {
+      "main": [
+        [
+          {
+            "node": "Assemble",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble": {
+      "main": [
+        [
+          {
+            "node": "Grading",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grading": {
+      "main": [
+        [
+          {
+            "node": "Report LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report LLM": {
+      "main": [
+        [
+          {
+            "node": "Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report": {
+      "main": [
+        [
+          {
+            "node": "Report email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report email": {
+      "main": [
+        [
+          {
+            "node": "Queue post-fall check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue post-fall check": {
+      "main": [
+        [
+          {
+            "node": "Wait post-fall check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait post-fall check": {
+      "main": [
+        [
+          {
+            "node": "Done post-fall check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Done post-fall check": {
+      "main": [
+        [
+          {
+            "node": "Caregiver form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Caregiver form": {
+      "main": [
+        [
+          {
+            "node": "Switch decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch decision": {
+      "main": [
+        [
+          {
+            "node": "Build transfer pack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GP summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Obs reminder 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build transfer pack": {
+      "main": [
+        [
+          {
+            "node": "Transfer pack email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transfer pack email": {
+      "main": [
+        [
+          {
+            "node": "Supporter approval email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supporter approval email": {
+      "main": [
+        [
+          {
+            "node": "Queue supporter approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue supporter approval": {
+      "main": [
+        [
+          {
+            "node": "Wait supporter approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait supporter approval": {
+      "main": [
+        [
+          {
+            "node": "Done supporter approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Done supporter approval": {
+      "main": [
+        [
+          {
+            "node": "Supporter approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supporter approval": {
+      "main": [
+        [
+          {
+            "node": "IF approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF approved?": {
+      "main": [
+        [
+          {
+            "node": "Supporter notice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Outcome message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GP summary": {
+      "main": [
+        [
+          {
+            "node": "Wait next business day",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait next business day": {
+      "main": [
+        [
+          {
+            "node": "GP reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obs reminder 1": {
+      "main": [
+        [
+          {
+            "node": "Wait 1 hour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1 hour": {
+      "main": [
+        [
+          {
+            "node": "Obs reminder 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supporter notice": {
+      "main": [
+        [
+          {
+            "node": "Outcome message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GP reminder": {
+      "main": [
+        [
+          {
+            "node": "Outcome message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obs reminder 2": {
+      "main": [
+        [
+          {
+            "node": "Outcome message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outcome message": {
+      "main": [
+        [
+          {
+            "node": "Queue outcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue outcome": {
+      "main": [
+        [
+          {
+            "node": "Wait outcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait outcome": {
+      "main": [
+        [
+          {
+            "node": "Done outcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Done outcome": {
+      "main": [
+        [
+          {
+            "node": "Outcome form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outcome form": {
+      "main": [
+        [
+          {
+            "node": "IF admitted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF admitted": {
+      "main": [
+        [
+          {
+            "node": "Admission notice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Incident draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admission notice": {
+      "main": [
+        [
+          {
+            "node": "Incident draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incident draft": {
+      "main": [
+        [
+          {
+            "node": "Save incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save incident": {
+      "main": [
+        [
+          {
+            "node": "Incident draft email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incident draft email": {
+      "main": [
+        [
+          {
+            "node": "Education blocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Education blocks": {
+      "main": [
+        [
+          {
+            "node": "Select blocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select blocks": {
+      "main": [
+        [
+          {
+            "node": "Compose LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose LLM": {
+      "main": [
+        [
+          {
+            "node": "Compose sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose sheet": {
+      "main": [
+        [
+          {
+            "node": "RN / GP approval email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RN / GP approval email": {
+      "main": [
+        [
+          {
+            "node": "Queue sheet approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue sheet approval": {
+      "main": [
+        [
+          {
+            "node": "Wait sheet approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait sheet approval": {
+      "main": [
+        [
+          {
+            "node": "Done sheet approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Done sheet approval": {
+      "main": [
+        [
+          {
+            "node": "RN / GP approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RN / GP approval": {
+      "main": [
+        [
+          {
+            "node": "IF RN approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF RN approved": {
+      "main": [
+        [
+          {
+            "node": "Send education sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 1 day",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send education sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait 1 day",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1 day": {
+      "main": [
+        [
+          {
+            "node": "Follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "fallguard-build-script"
+  }
+}

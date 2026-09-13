@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0",
+  "system": "FallGuard",
+  "event_type": "escalation",
+  "sent_at": "2026-09-12T21:42:16+00:00",
+  "source": {
+    "mode": "upload",
+    "name": "demo_fall_01.mp4"
+  },
+  "episode": {
+    "episode_id": "ep-20260912-214216-4262",
+    "source": {
+      "mode": "upload",
+      "name": "demo_fall_01.mp4"
+    },
+    "status": "on_ground",
+    "fall_time": "2026-09-12T21:41:36+00:00",
+    "fall_video_time_sec": 12.4,
+    "end_time": null,
+    "end_video_time_sec": null,
+    "time_on_ground_sec": 10.0,
+    "posture_breakdown_sec": {
+      "lying": 10.0,
+      "partially_upright": 0.0,
+      "not_visible": 0.0
+    },
+    "time_lying_sec": 10.0,
+    "time_motionless_sec": 10.0,
+    "time_motion_unknown_sec": 0.0,
+    "current_posture": "lying",
+    "max_alert_level": 2,
+    "alerts": [
+      {
+        "level": 1,
+        "label": "Fall Detected",
+        "time": "2026-09-12T21:41:36+00:00",
+        "video_time_sec": 12.4,
+        "time_on_ground_sec": 0.0
+      },
+      {
+        "level": 2,
+        "label": "Person Still Down",
+        "time": "2026-09-12T21:42:16+00:00",
+        "video_time_sec": 22.4,
+        "time_on_ground_sec": 10.0
+      }
+    ],
+    "trigger_signals": {
+      "detector": true,
+      "pose_rule": false,
+      "temporal": true,
+      "pose_score_at_fall": 0.5
+    },
+    "thresholds": {
+      "level2_sec": 10,
+      "level3_sec": 30,
+      "recovery_angle_deg": 20,
+      "lying_angle_deg": 60,
+      "motion_threshold_per_sec": 0.15,
+      "detection_conf": 0.25
+    },
+    "event_features": {
+      "analysis_status": "done",
+      "prefall": {
+        "posture": "standing",
+        "frames_used": 14,
+        "torso_angle_deg": 6.2,
+        "knee_angle_deg": 171.0,
+        "hip_height_torso_units": 1.68,
+        "hip_height_cm": 79.8,
+        "head_height_cm": 148.5,
+        "feet_elevation_cm": 0.0,
+        "fall_height_category": "standing_height"
+      },
+      "head_impact": {
+        "risk": "high",
+        "reasons": [
+          "head came down fast (3.6 torso lengths/s)",
+          "head reached floor level 0.12 s before the hips"
+        ],
+        "peak_descent_speed_torso_per_sec": 3.6,
+        "peak_descent_speed_cm_per_sec": 171.1,
+        "head_reached_floor_level": true,
+        "head_before_hip_sec": 0.12,
+        "head_visible_fraction": 0.9,
+        "head_source": "keypoints",
+        "floor_source": "settled_body",
+        "settled_lying": true,
+        "frames_skipped_as_cuts": 0,
+        "frames_analysed": 18
+      },
+      "image_quality": {
+        "torso_px": 62.0,
+        "min_torso_px": 20.0
+      },
+      "scale": {
+        "patient_height_cm": 165.0,
+        "torso_fraction_of_height": 0.288
+      },
+      "fall_confidence": "confirmed"
+    },
+    "frames_processed": 80,
+    "frames_rejected_far_away": 0
+  },
+  "alert_level": 2
+}

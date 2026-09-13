@@ -1,7 +1,9 @@
-# Versions the app was last run with (Python 3.13, CPU only).
-# ultralytics installs torch and torchvision itself; a CPU build of torch is enough.
-streamlit==1.58.0
-ultralytics==8.4.56
-opencv-python>=4.13.0,<5
-numpy==2.2.6
-requests==2.32.3
+# Python 3.10+ (tested on 3.13, CPU only). ultralytics installs torch itself; a CPU build is enough.
+streamlit>=1.38
+ultralytics>=8.3
+opencv-python>=4.10,<5
+numpy>=1.26
+pandas>=2.0
+requests>=2.31
+python-dotenv>=1.0
+imageio-ffmpeg>=0.5     # bundled ffmpeg: H.264 fall clips that play inline in Telegram

@@ -4,6 +4,7 @@ models/*.pt
 
 # video and audio are never committed
 *.mp4
+!test_payloads/*.mp4
 *.avi
 *.mov
 *.mkv
@@ -12,6 +13,7 @@ models/*.pt
 
 # credentials
 .env
+app/.env
 .streamlit/secrets.toml
 *token*.txt
 
@@ -27,6 +29,7 @@ data/
 dataset/
 datasets/
 *.csv
+!sheets/*.csv
 *.parquet
 *.zip
 *.duckdb

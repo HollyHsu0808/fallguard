@@ -1,5 +1,18 @@
 # Changelog
 
+## v2 (September 2026): n8n care workflow, video alerts, decisions in the app
+
+Built for the n8n hackathon. The app stops alerting by itself and becomes the sensor; n8n decides and delivers.
+
+- **Fall clip in the alert.** The app keeps the last 5 s of frames in a ring buffer; when a fall is called it keeps collecting for ~2.5 s, encodes an H.264 mp4 (ffmpeg via imageio-ffmpeg, OpenCV fallback) and puts it in the `fall_analysed` and `escalation` payloads. n8n sends it with Telegram *Send Video*; falls back to the fall frame as a photo, then to text.
+- **Episode contract.** `fall_detected` → `fall_analysed` (pre-fall posture, fall-height category, head-impact risk, `fall_confidence`) → `escalation` (Level 2/3) → `episode_closed` (recovered / unresolved). `likely_false_alarm` episodes are logged and never alert anyone.
+- **Report by Claude, facts only.** Grading (tier, flags, plain-language numbers) feeds a prompt that may only restate measured values: time of fall, time on the floor, head-impact *risk*, fall height. No diagnosis.
+- **Decisions in the app, not in email.** Post-fall check, family-notice approval, outcome and information-sheet approval are queued in a `pending_actions` sheet; the app's Actions page shows them and posts the answer (with who and when) to the waiting execution. Emails are HTML notifications that say what happened and what to do.
+- **Documents.** Transfer pack + ISBAR handover, family notice (approved), incident-report draft (SIRS classification left to a person), after-fall information sheet assembled only from approved blocks and approved by a nurse or GP before it is sent.
+- **Resident lookup with a fallback** (`default` row, then first row) so a demo file name never silently drops the alert.
+- Bugs fixed on the way: each-item Code nodes must return one object; *Convert to File* empties the item's json; n8n expressions reject arrow functions; Basic LLM Chain is not covered by n8n Gateway credits (use the Anthropic node).
+
+
 Derived from the nine dated script versions kept during development (app_v1 to app_v7) and the author's version notes. Each entry names the failure that prompted the change.
 
 ## app.py (repository version)

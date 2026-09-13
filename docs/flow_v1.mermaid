@@ -1,0 +1,62 @@
+%% FallGuard — feasible flow, v1 (hackathon build). Solid = build now; dashed = pilot/later.
+flowchart TD
+
+  subgraph F1["FLOW 1 — FallGuard app: measure (runs on the laptop with the camera / video)"]
+    direction TB
+    A1["Camera or video file"] --> A2["YOLOv8 fall detector + YOLOv8-Pose"]
+    A2 --> A3["Episode tracker<br/>time on floor · lying / partially upright / not visible · motionless"]
+    A3 --> A4["Fall analysis (rules on keypoints)<br/>pre-fall posture → fall-height category<br/>head-impact risk + reasons · fall_confidence"]
+    A4 --> A5["Webhook POST, header X-FallGuard-Key<br/>fall_detected · fall_analysed · escalation · episode_closed"]
+  end
+
+  A5 --> B1
+
+  subgraph F2["FLOW 2 — n8n Cloud: decide, report, deliver (home-care scenario)"]
+    direction TB
+    B1["Webhook node — Header Auth, Respond immediately"] --> B2{"Switch on event_type"}
+
+    B2 -->|fall_analysed| B3{"fall_confidence"}
+    B3 -->|likely_false_alarm| B4["Append to event log only — nobody messaged"]
+    B3 -->|confirmed or unconfirmed| B5["Look up resident profile (Google Sheet)<br/>consent flags · supporter contacts · ACD on file? · anticoagulant? · language"]
+    B5 --> B6["Immediate alert to caregiver (Telegram)<br/>fixed template, no LLM: time, posture, head risk, fell from"]
+
+    B2 -->|"escalation (Level 2 / 3)"| B7["Escalation alert (Telegram)<br/>still down N s · lying · motionless"]
+
+    B2 -->|episode_closed or test| B8["Grading — Code node<br/>tier 0-3, flags, plain-language numbers"]
+    B8 --> B9["LLM report — Basic LLM Chain<br/>four items, measured facts only, no diagnosis"]
+    B9 --> B10["SEND & WAIT — caregiver / RN form (Gmail or Telegram)<br/>1 ACD reviewed?  2 person assessed: injury, alertness, pain, can move?  3 decision"]
+
+    B10 -->|"call 000"| C1["Transfer pack checklist + one-page ISBAR summary<br/>(Medicare / concession card, medication list, ACD, GP details)"]
+    C1 --> C2["Open-disclosure notice to supporter<br/>draft → human approve → send"]
+    B10 -->|"GP / virtual care"| C3["GP summary email now + reminder next business day"]
+    B10 -->|"observe at home"| C4["Observation reminders — Wait nodes<br/>hourly ×4, then every 4 h to 24 h (CEC schedule)"]
+
+    C2 --> D1["SEND & WAIT — outcome form<br/>stayed home · ED then home · admitted"]
+    C3 --> D1
+    C4 --> D1
+    D1 -->|admitted| D2["Admission notice to supporter<br/>(no further automation)"]
+    D1 --> D3["Incident report DRAFT — pre-filled from episode<br/>human fields left blank (injury, cause, actions, SIRS class)"]
+    D3 --> D4["Education sheet — assemble approved blocks by state<br/>head risk · anticoagulant · long lie · admitted · language"]
+    D4 --> D5["SEND & WAIT — RN / GP approval"]
+    D5 -->|approved| D6["Send to supporter (Gmail)"]
+    D6 --> D7["Follow-ups — Wait nodes<br/>ambulance fee exemption reminder · caregiver check-in · data retention countdown"]
+  end
+
+  subgraph F3["LATER — pilot / product (not in the hackathon build)"]
+    direction TB
+    E1["Facility IMS / SIRS classification by provider"]:::later
+    E2["Aged Care Transfer Summary via facility clinical system → My Health Record"]:::later
+    E3["Secure messaging to GP / facility channel instead of Telegram + Gmail"]:::later
+    E4["Consent management, privacy policy (APP 8, automated-decision disclosure from 10 Dec 2026)"]:::later
+    E5["TGA classification of the head-risk / fall-height output"]:::later
+  end
+
+  D3 -.-> E1
+  C1 -.-> E2
+  B6 -.-> E3
+  B5 -.-> E4
+  A4 -.-> E5
+
+  classDef later stroke-dasharray: 6 4,fill:#f7f7f7,color:#555;
+  classDef human fill:#fff3cd,stroke:#b8860b;
+  class B10,D1,D5 human;

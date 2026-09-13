@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "system": "FallGuard",
+  "event_type": "fall_analysed",
+  "sent_at": "2026-09-12T21:42:16+00:00",
+  "source": {
+    "mode": "upload",
+    "name": "demo_fall_01.mp4"
+  },
+  "episode": {
+    "episode_id": "ep-20260912-214216-7158",
+    "source": {
+      "mode": "upload",
+      "name": "demo_fall_01.mp4"
+    },
+    "status": "recovered",
+    "fall_time": "2026-09-12T21:41:36+00:00",
+    "fall_video_time_sec": 12.4,
+    "end_time": "2026-09-12T21:42:16+00:00",
+    "end_video_time_sec": 13.65,
+    "time_on_ground_sec": 1.25,
+    "posture_breakdown_sec": {
+      "lying": 0.0,
+      "partially_upright": 1.25,
+      "not_visible": 0.0
+    },
+    "time_lying_sec": 0.0,
+    "time_motionless_sec": 0.0,
+    "time_motion_unknown_sec": 0.0,
+    "current_posture": "partially_upright",
+    "max_alert_level": 1,
+    "alerts": [
+      {
+        "level": 1,
+        "label": "Fall Detected",
+        "time": "2026-09-12T21:41:36+00:00",
+        "video_time_sec": 12.4,
+        "time_on_ground_sec": 0.0
+      }
+    ],
+    "trigger_signals": {
+      "detector": true,
+      "pose_rule": false,
+      "temporal": false
+    },
+    "thresholds": {
+      "level2_sec": 10,
+      "level3_sec": 30,
+      "recovery_angle_deg": 20,
+      "lying_angle_deg": 60,
+      "motion_threshold_per_sec": 0.15,
+      "detection_conf": 0.25
+    },
+    "event_features": {
+      "analysis_status": "done",
+      "prefall": {
+        "posture": "standing",
+        "fall_height_category": "standing_height",
+        "hip_height_cm": null,
+        "head_height_cm": null
+      },
+      "head_impact": {
+        "risk": "unknown",
+        "reasons": [
+          "person did not settle on the floor and the head did not reach the estimated floor level"
+        ],
+        "settled_lying": false,
+        "head_reached_floor_level": false
+      },
+      "image_quality": {
+        "torso_px": 40.0,
+        "min_torso_px": 20.0
+      },
+      "scale": {
+        "patient_height_cm": null
+      },
+      "fall_confidence": "likely_false_alarm"
+    },
+    "frames_processed": 10,
+    "frames_rejected_far_away": 0
+  }
+}
