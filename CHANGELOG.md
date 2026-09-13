@@ -2,7 +2,7 @@
 
 ## v2 (September 2026): n8n care workflow, video alerts, decisions in the app
 
-Built for the n8n hackathon. The app stops alerting by itself and becomes the sensor; n8n decides and delivers.
+Built at the n8n University Hackathon, Sydney (11–13 September 2026); winner of Best Business Use Case. The app stops alerting by itself and becomes the sensor; n8n decides and delivers.
 
 - **Fall clip in the alert.** The app keeps the last 5 s of frames in a ring buffer; when a fall is called it keeps collecting for ~2.5 s, encodes an H.264 mp4 (ffmpeg via imageio-ffmpeg, OpenCV fallback) and puts it in the `fall_analysed` and `escalation` payloads. n8n sends it with Telegram *Send Video*; falls back to the fall frame as a photo, then to text.
 - **Episode contract.** `fall_detected` → `fall_analysed` (pre-fall posture, fall-height category, head-impact risk, `fall_confidence`) → `escalation` (Level 2/3) → `episode_closed` (recovered / unresolved). `likely_false_alarm` episodes are logged and never alert anyone.

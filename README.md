@@ -1,6 +1,6 @@
 # FallGuard: from a detected fall to the right people, with a human in the loop
 
-**🏆 Winner, n8n hackathon (September 2026).**
+**🏆 Best Business Use Case — n8n University Hackathon, Sydney (11–13 September 2026, n8n Community Events).**
 
 ![FallGuard holds the FALLEN state even after the pose model loses the person](docs/dashboard-fall-detected.jpg)
 
@@ -126,4 +126,4 @@ fallguard/
 
 ## Attribution
 
-Built by Yu-Yun Hsu, 2026. v1 was a university group project; v2 was built for the n8n hackathon. The product definition, state-machine design, fall analysis rules, Streamlit interface, model training, n8n workflow design and clinical-pathway research are the author's own work. Weights were fine-tuned from Ultralytics YOLOv8s. Screenshots show frames from the Le2i Fall Detection Dataset (Charfi et al., 2013), used for research and demonstration; the videos are not redistributed. Documentation and repository packaging were prepared with AI assistance.
+Built by Yu-Yun Hsu, 2026. v1 was a university group project; v2 was built at the n8n University Hackathon, Sydney (September 2026), where it won Best Business Use Case. The product definition, state-machine design, fall analysis rules, Streamlit interface, model training, n8n workflow design and clinical-pathway research are the author's own work. Weights were fine-tuned from Ultralytics YOLOv8s. Screenshots show frames from the Le2i Fall Detection Dataset (Charfi et al., 2013), used for research and demonstration; the videos are not redistributed. Documentation and repository packaging were prepared with AI assistance.
