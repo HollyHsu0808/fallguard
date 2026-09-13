@@ -18,6 +18,18 @@ Camera / video ──▶ app (YOLOv8 detector + pose rules + episode tracker)
                                             ──▶ outcome → incident draft → approved information sheet → follow-up
 ```
 
+## See it working
+
+| Telegram: the fall clip arrives ~2.5 s after the fall | Google Sheet: every event appended to `event_log`, decisions to `pending_actions` |
+|---|---|
+| ![Telegram video alert](docs/telegram-video-alert.jpg) | ![event_log sheet](docs/sheet-event-log.png) |
+
+| Email: Step 1 of 4 fall report (Claude, facts only) | Email: the approved after-fall information sheet |
+|---|---|
+| ![Fall report email](docs/email-fall-report.png) | ![Information sheet email](docs/email-information-sheet.png) |
+
+The email layout can be previewed without running anything: open `docs/email_preview_fall_report.html` and `docs/email_preview_information_sheet.html` in a browser. A full information sheet as generated for a real episode is in `docs/sample_education_sheet.txt`.
+
 ## What is new in v2
 
 | v1 (prototype) | v2 (this repo) |
